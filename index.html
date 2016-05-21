@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>画板</title>
+	<link rel="stylesheet" href="css/iconfont.css">
+	<script src="js/jquery.js"></script>
+	<style>
+	.huanban{
+		
+		height: 100%;
+		margin-left: 40px;
+		/*background: #282828;*/
+		background: url(1.png) no-repeat;
+		background-size:cover; 
+	}
+	.gongju{
+		height: 100%;
+		width: 40px;
+		margin-left: -40px;
+		background: #535353;
+		float: left;
+	}
+	.yanse{
+		height: 30px;
+		width: 100%;
+		background: #535353;
+	}
+	.yanse div{
+		float: left;
+	}
+	.yanse input{
+		float: left;
+	}
+	.canvas-box{
+		width: 1200px;
+		height: 700px;
+		margin:50px auto;
+		position: relative;
+		
+	}
+	canvas{
+		background: #fff;
+		position: absolute;
+	}
+	html,body{
+		height: 100%;
+		margin: 0;
+	}
+	#copy{
+		border: 1px solid green;
+		width: 1200px;
+		height: 700px;
+		position: absolute;	
+	}
+	input[type=color]{
+		height: 28px;
+		width: 34px;
+		margin-left: 3px;
+		background:  #535353;
+		outline: none;
+		color:#B3B3B3;
+		font-size: 20px;
+		border:0;
+		padding: 0;
+	}
+	button,.button{
+		height: 28px;
+		width: 34px;
+		margin-left: 3px;
+		background:  #535353;
+		outline: none;
+		border: none;
+		color:#B3B3B3;
+		font-size: 20px;
+		text-align: center;
+	}
+	button:hover{
+		background: #6E6E6E;
+		border-radius: 4px;
+	}
+	button:active{
+		background: #333333;
+		border-radius: 4px;
+	}
+	button:nth-of-type(1){
+		margin-top: 30px;
+	}
+	</style>
+</head>
+<body>
+	<div class="huanban">
+		<div class="gongju">
+			<button class="xinjian iconfont">&#xe680;</button>
+			<button class="baocun iconfont">&#xe66f;</button>
+			<button class="chexiao iconfont">&#xe601;</button>
+			<!-- 保存，撤销，新建 -->
+			<span style="background:#171814;display:block;width:34px;height:1px;margin-left:3px;"></span>
+			<button class="xian iconfont">&#xe611;</button>
+			<button class="ju iconfont">&#xe606;</button>
+			<button class="yuan iconfont">&#xe62e;</button>
+			<button class="duobian iconfont">&#xe6a7;</button>
+			<button class="duojiao iconfont">&#xe616;</button>
+			<button class="qian iconfont">&#xe60a;</button>
+			<!-- 线条，矩形，圆，多边形，多角形，铅笔 -->
+			<span style="background:#171814;display:block;width:34px;height:1px;margin-left:3px;"></span>
+			<button class="tianc iconfont">&#xe6c1;</button>
+			<button class="miaobian iconfont">&#xe63c;</button>
+			<!-- 填充，描边 -->
+			
+			
+		</div>
+		<div class="yanse">
+			<div class="button iconfont">&#xe65a;</div>
+			<input type="color" id='tcys'>
+			<div class="button iconfont">&#xe621;</div>
+			<input type="color" id='mbys'>
+			<div class="button iconfont">&#xe69b;</div>
+			<input type="range" id="range">
+			<!-- 填充颜色，描边颜色 -->
+		</div>
+		<div class="canvas-box">
+			<!-- <canvas width=1200 height=700></canvas>
+			<div id="copy"></div> -->
+
+		</div>
+	</div>
+	<script>
+	
+	
+	var box=document.querySelector(".canvas-box");
+	var baocun=document.querySelector(".baocun");
+	var chexiao=document.querySelector(".chexiao");
+	var xinjian=document.querySelector(".xinjian");
+	var xian=document.querySelector(".xian");
+	var ju=document.querySelector(".ju");
+	var yuan=document.querySelector(".yuan");
+	var duobian=document.querySelector(".duobian");
+	var duojiao=document.querySelector(".duojiao");
+	var qian=document.querySelector(".qian");
+	var mbys=document.querySelector("#mbys");
+	var tianc=document.querySelector(".tianc");
+	var miaobian=document.querySelector(".miaobian");
+	xinjian.onclick=function(){
+		var str='<canvas width=1200 height=700></canvas><div id="copy"></div>';
+		box.innerHTML=str;
+		canvas=document.querySelector("canvas");
+		obj=canvas.getContext("2d");
+		copy=document.querySelector("#copy");
+		c=new palette(obj,canvas,copy);
+		c.draw();	
+	}
+	chexiao.onclick=function(){
+		if(c.history.length==1){
+			c.obj.clearRect(0,0,c.width,c.height);
+		}else{
+			
+			c.history.pop();
+			c.obj.putImageData(c.history[c.history.length-1],0,0,0,0,c.width,c.height)
+		}
+	}
+	baocun.onclick=function(){
+		location.href=canvas.toDataURL("image/png",1).replace("image/png", "image/octet-stream");
+	
+		
+	}
+	xian.onclick=function(){
+		c.type="line";
+		c.flag=false;
+		xian.style.cssText="background:#333333;border-radius: 4px;";
+		
+	}
+	ju.onclick=function(){
+		c.type="rect"
+		c.flag=false;
+	}
+	yuan.onclick=function(){
+		c.type="arc"
+		c.flag=false;
+	}
+	duobian.onclick=function(){
+		c.type="poly"
+		c.flag=false;
+		c.bnum=prompt("请输入多边形的边数");
+	}
+	duojiao.onclick=function(){
+		c.type="jiao"
+		c.flag=false;
+		c.jnum=prompt("请输入多角形的角数");
+	}
+	qian.onclick=function(){
+		c.flag=true;
+	}
+	mbys.onchange=function(){
+		c.strokeStyle=mbys.value;
+		
+	}
+	tianc.onclick=function(){
+		c.style="fill"
+	}
+	miaobian.onclick=function(){
+		c.style="stroke"
+	}
+	tcys.onchange=function(){
+		c.fillStyle=tcys.value;
+	}
+	range.onchange=function(){
+		c.lineWidth=range.value*0.1;
+	}
+	
+
+
+
+
+
+function palette(cobj,canvas,copy){
+	this.obj=cobj;
+	this.canvas=canvas;
+	this.copy=copy;
+	this.width=canvas.width;
+	this.height=canvas.height;  
+	this.lineWidth=2; 
+	this.strokeStyle="#000";  //边框的颜色
+	this.fillStyle="#000000";
+	this.style="stroke";   //绘制的类型
+	this.type="jiao";
+	this.history=[];
+	this.flag=false;
+	this.bnum=6;
+	this.jnum=5;
+}
+palette.prototype.reset=function(){
+	this.obj.strokeStyle=this.strokeStyle;
+	this.obj.fillStyle=this.fillStyle;
+	this.obj.lineWidth=this.lineWidth; ; 
+}
+palette.prototype.draw=function(){
+	var that=this;
+	this.copy.onmousedown=function(e){
+		var dx=e.offsetX;
+		var dy=e.offsetY;
+		that.reset();
+		if(that.flag){
+			that.obj.beginPath();
+		}
+		that.copy.onmousemove=function(e){
+			var mx=e.offsetX;
+			var my=e.offsetY;
+			if(that.flag){
+				that.obj.lineTo(mx,my)
+				that.obj.stroke();
+			}else{
+				that.obj.clearRect(0,0,that.width,that.height);  //清除画布
+				if(that.history.length>0){
+					that.obj.putImageData(that.history[that.history.length-1],0,0,0,0,that.width,that.height);
+					
+				}
+				that[that.type](dx,dy,mx,my);
+			}
+
+		}
+		document.onmouseup=function(){
+			if(that.flag){
+				that.obj.closePath();
+			}
+			that.copy.onmousemove=null;
+			document.onmouseup=null;
+			that.history.push(that.obj.getImageData(0,0,that.width,that.height));
+
+		}
+	} 
+};
+palette.prototype.line=function(x1,y1,x2,y2){
+	this.obj.beginPath();
+	this.obj.lineTo(x1,y1);
+	this.obj.lineTo(x2,y2);
+	this.obj.stroke();
+	this.obj.closePath();
+}
+palette.prototype.rect=function(x1,y1,x2,y2){
+	var w=x2-x1;
+	var h=y2-y1;
+	this.obj.beginPath();
+	this.obj.rect(x1+.5,y1+.5,w,h);    //创建一个矩形
+	this.obj.closePath();
+	this.obj[this.style]();
+}
+palette.prototype.arc=function(x1,y1,x2,y2){
+	//半径  勾股定理
+	var r=Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
+	this.obj.beginPath();
+	this.obj.arc(x1,y1,r,0,2*Math.PI,false);
+	this.obj.closePath();
+	this.obj[this.style]();
+}
+palette.prototype.poly=function(x1,y1,x2,y2){
+	var r=Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
+	var b=this.bnum;
+	var ag=360/b;
+	var that=this;
+	this.obj.beginPath();
+	for(var i=0;i<b;i++){
+		that.obj.lineTo(x1+Math.cos(i*ag*Math.PI/180)*r,y1+Math.sin(i*ag*Math.PI/180)*r)
+	}
+	this.obj.closePath();
+	this.obj[this.style]();
+}
+palette.prototype.jiao=function(x1,y1,x2,y2){
+	var r=Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
+	var r1=r/2.5;
+	var b=this.jnum*2;
+	var ag=360/b;
+	var that=this;
+	this.obj.beginPath();
+	
+	for(var i=0;i<b;i++){
+		if(i%2==0){
+			that.obj.lineTo(x1+Math.cos(i*ag*Math.PI/180)*r,y1+Math.sin(i*ag*Math.PI/180)*r)
+		}else{
+			that.obj.lineTo(x1+Math.cos(i*ag*Math.PI/180)*r1,y1+Math.sin(i*ag*Math.PI/180)*r1)
+		}
+		
+	}
+	this.obj.closePath();
+	this.obj[this.style]();
+}
+//多角形
+
+	
+	</script>
+</body>
+</html>
